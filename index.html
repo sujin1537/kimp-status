@@ -1,0 +1,37 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>김프 봇 현황판</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mut:#667085;--ln:#e4e7ec;--ac:#2f6fed;--up:#d92d20;--dn:#1570ef;--ok:#12b76a}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#171b22;--tx:#e8ecf2;--mut:#98a2b3;--ln:#262c36;--ac:#6ea0ff;--up:#ff6b5e;--dn:#6aa8ff;--ok:#3ddc97}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}h1{font-size:20px;margin:4px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px}
+.k{color:var(--mut);font-size:12px}.v{font-size:22px;font-weight:650;margin-top:2px}h2{font-size:15px;margin:22px 0 8px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--ln);border-radius:12px;overflow:hidden;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--ln);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:500}tr:last-child td{border-bottom:0}
+canvas{width:100%;height:220px;background:var(--card);border:1px solid var(--ln);border-radius:12px}.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--ln)}
+.note{color:var(--mut);font-size:12px;margin-top:22px;line-height:1.6}.pos{color:var(--up)}.neg{color:var(--dn)}
+</style></head><body><main>
+<h1>김프 봇 현황판 <span id="mode" class="pill"></span></h1><div class="sub" id="upd">불러오는 중…</div>
+<div class="grid" id="cards"></div>
+<h2>최근 24시간 김프</h2><canvas id="ch" width="720" height="220"></canvas>
+<h2>최근 거래</h2><table><thead><tr><th>진입 → 청산</th><th>김프</th><th>수익률</th></tr></thead><tbody id="tr"></tbody></table>
+<h2>월별 수익률</h2><table><thead><tr><th>월</th><th>수익률</th></tr></thead><tbody id="mo"></tbody></table>
+<p class="note">개인이 자기 계좌로 운용하는 자동매매 기록을 그대로 보여주는 페이지입니다. 금액은 공개하지 않고 비율만 표시합니다.
+투자 권유나 자문이 아니며, 과거 기록은 미래 수익을 보장하지 않습니다. 원금 손실이 날 수 있고, 각자 본인 책임으로 판단하세요.</p>
+</main><script>
+const f=(x,d=2)=>x==null?'-':(x>=0?'+':'')+x.toFixed(d)+'%',c=x=>x==null?'':x>=0?'pos':'neg';
+fetch('status.json?_='+Date.now()).then(r=>r.json()).then(s=>{
+document.getElementById('mode').textContent=s.mode;document.getElementById('upd').textContent='마지막 갱신 '+s.updated+' (한국시간) · 10분마다 갱신';
+const cards=[['현재 김프',s.prem==null?'-':s.prem.toFixed(2)+'%'],['24시간 기준선',s.base==null?'-':s.base.toFixed(2)+'%'],['진입선 / 청산선',(s.entry==null?'-':s.entry.toFixed(2))+' / '+(s.exit==null?'-':s.exit.toFixed(2))+'%'],['상태',s.state],['누적 수익률',f(s.total_ret)],['이번 달',f(s.month_ret)],['오늘',f(s.today_ret)],['거래 횟수',s.n_trades+'회']];
+document.getElementById('cards').innerHTML=cards.map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v ${['누적 수익률','이번 달','오늘'].includes(k)?c(parseFloat(v)):''}">${v}</div></div>`).join('');
+document.getElementById('tr').innerHTML=(s.trades.length?s.trades:[]).map(t=>`<tr><td>${t.in} → ${t.out}</td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3>아직 거래가 없습니다</td></tr>';
+document.getElementById('mo').innerHTML=(s.months.length?s.months:[]).map(m=>`<tr><td>${m.m}</td><td class="${c(m.ret)}">${f(m.ret)}</td></tr>`).join('')||'<tr><td colspan=2>기록 쌓이는 중</td></tr>';
+draw(s.series);}).catch(e=>{document.getElementById('upd').textContent='데이터를 불러오지 못했습니다'});
+function draw(S){const cv=document.getElementById('ch'),x=cv.getContext('2d'),W=cv.width,H=cv.height;x.clearRect(0,0,W,H);if(!S||S.length<2)return;
+const all=S.flatMap(p=>[p[1],p[2]]).filter(v=>v!=null),lo=Math.min(...all),hi=Math.max(...all),pad=(hi-lo)*.1||.1,y=v=>H-24-(v-lo+pad)/(hi-lo+2*pad)*(H-40),X=i=>30+i/(S.length-1)*(W-44);
+const st=getComputedStyle(document.body);x.font='11px sans-serif';x.fillStyle=st.getPropertyValue('--mut');x.strokeStyle=st.getPropertyValue('--ln');
+for(let k=0;k<=4;k++){const v=lo-pad+(hi-lo+2*pad)*k/4;x.beginPath();x.moveTo(30,y(v));x.lineTo(W-8,y(v));x.stroke();x.fillText(v.toFixed(1),0,y(v)+3)}
+const line=(idx,col,w)=>{x.beginPath();let on=0;S.forEach((p,i)=>{if(p[idx]==null)return;on?x.lineTo(X(i),y(p[idx])):x.moveTo(X(i),y(p[idx]));on=1});x.strokeStyle=col;x.lineWidth=w;x.stroke()};
+line(2,st.getPropertyValue('--mut'),1.2);line(1,st.getPropertyValue('--ac'),2)}
+</script></body></html>
