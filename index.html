@@ -51,12 +51,14 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
  <div class="chips" id="mo"></div>
 </section>
 
-<section class="card"><h2>최근 거래 <small id="ntr"></small></h2>
+<section class="card"><h2>최근 거래 <small id="ntr"></small></h2><div class="hint" style="font-size:12px;color:var(--mut);margin:-6px 0 8px">거래를 누르면 진입·청산 시점 차트를 볼 수 있어요</div>
  <table><thead><tr><th>진입 → 청산</th><th>김프</th><th>수익률</th></tr></thead><tbody id="tr"></tbody></table></section>
 
 <p class="note">개인이 자기 계좌로 운용하는 자동매매 기록을 보여주는 페이지입니다. 금액은 공개하지 않고 비율만 표시합니다.
 투자 권유나 자문이 아니며, 과거 기록은 미래 수익을 보장하지 않습니다. 원금 손실이 날 수 있고, 각자 본인 책임으로 판단하세요.</p>
-</main><script>
+</main>
+<div id="mdl" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9;padding:12px;overflow:auto"><div class="card" style="max-width:640px;margin:24px auto 24px"><h2 id="mt" style="margin-bottom:4px"></h2><div id="msub" style="font-size:12.5px;color:var(--mut);margin-bottom:8px"></div><div id="msvg"></div><div class="note" id="mnote"></div><div style="text-align:right;margin-top:12px"><button id="mclose" style="border:1px solid var(--ln);background:var(--tile);color:var(--tx);border-radius:10px;padding:8px 16px;font-size:14px">닫기</button></div></div></div>
+<script>
 const $=id=>document.getElementById(id),f=(x,d=2)=>x==null?'-':(x>=0?'+':'')+x.toFixed(d)+'%',c=x=>x==null?'':x>=0?'pos':'neg';
 let S=null;
 const rp=location.hostname.split('.')[0]+'/'+location.pathname.split('/')[1];
@@ -74,7 +76,7 @@ pc.style.display='';pc.innerHTML=`<h2>이번 포지션 <small>${q.held<48?Math.r
 +sub(`업비트 롱 ${f(q.up)} · 바이낸스 숏 ${f(q.fut)} (포지션 규모 대비)`)}else pc.style.display='none';
 $('tiles').innerHTML=[['오늘',s.today_ret],[s.month_since?'이번 달 ('+s.month_since+'~)':'이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
 (()=>{const n=$('pnote');if(!n)return;if(s.pr_other!=null&&s.pr_other<-0.05){n.style.display='';n.innerHTML=`<b>원금 대비 ${f(s.principal_ret)}</b> = 매매 ${f(s.pr_trade)} + 송금·환전 비용 등 ${f(s.pr_other)}<br>바이낸스로 보낼 USDT를 업비트에서 살 때 김프(약 1.5%)만큼 비싸게 샀기 때문입니다. 한 번 드는 비용이고, 매매 수익이 쌓이면 메워집니다.`}else{n.style.display='none'}})();
-$('tr').innerHTML=s.trades.map(t=>`<tr><td>${t.in} → ${t.out}</td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">아직 청산한 거래가 없습니다</td></tr>';
+$('tr').innerHTML=s.trades.map(t=>`<tr data-id="${t.id}" style="cursor:pointer"><td>${t.in} → ${t.out}</td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">아직 청산한 거래가 없습니다</td></tr>';
 $('ntr').textContent=s.n_trades+'회';
 $('mo').innerHTML=s.months.map(m=>`<span class="chip"><span>${m.m.slice(2)}</span><b class="${c(m.ret)}">${f(m.ret)}</b></span>`).join('');
 chart();cal(s)}).catch(()=>{$('upd').textContent='불러오지 못했습니다'});
@@ -117,6 +119,28 @@ tip.innerHTML=`<b>${p[1].toFixed(2)}%</b> <span style="color:var(--mut)">${p[0].
 const tw=tip.offsetWidth,x=(X(i)/W)*r.width;tip.style.left=Math.max(0,Math.min(r.width-tw,x-tw/2))+'px';tip.style.top='-6px'};
 hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',()=>{xh.style.display='none';tip.style.display='none'});
 const lastP=P[last][1];$('cs24').textContent=`최저 ${Math.min(...P.map(p=>p[1])).toFixed(2)}% · 최고 ${Math.max(...P.map(p=>p[1])).toFixed(2)}%`}
+const loadSnap=id=>fetch('https://api.github.com/repos/'+rp+'/contents/trades/'+id+'.json?ref=data',{headers:{Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).catch(()=>fetch('https://raw.githubusercontent.com/'+rp+'/data/trades/'+id+'.json?_='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}));
+function snapSvg(d){const P=d.series,W=Math.max(300,Math.min(document.documentElement.clientWidth-64,600)),H=Math.round(W*.62),L=38,R=12,T=34,B=22;
+const col=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ent=P.map(p=>p[2]==null?null:p[2]-d.gap),ext=P.map(p=>p[2]==null?null:p[2]+(p[3]||0));
+const vals=P.flatMap((p,i)=>[p[1],p[2],ent[i],ext[i]]).filter(v=>v!=null);let lo=Math.min(...vals),hi=Math.max(...vals);const pd=(hi-lo)*.1||.1;lo-=pd;hi+=pd;
+const X=i=>L+i/(P.length-1)*(W-L-R),Y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+const path=(arr,k)=>{let o='',on=0;P.forEach((p,i)=>{const v=k==null?arr[i]:p[k];if(v==null){on=0;return}o+=(on?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);on=1});return o};
+let g=`<rect x="${X(d.ei)}" y="${T}" width="${Math.max(1,X(d.xi)-X(d.ei))}" height="${H-T-B}" fill="${col('--entry')}" opacity=".08"/>`;
+for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${col('--ln')}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="${col('--mut')}">${v.toFixed(1)}</text>`}
+[0,.5,1].forEach((r,j)=>{const i=Math.round(r*(P.length-1));g+=`<text x="${X(i)}" y="${H-5}" text-anchor="${j==0?'start':j==2?'end':'middle'}" font-size="10.5" fill="${col('--mut')}">${P[i][0].slice(3)}</text>`});
+g+=`<path d="${path(null,2)}" fill="none" stroke="${col('--base')}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/><path d="${path(ent)}" fill="none" stroke="${col('--entry')}" stroke-width="1.5" stroke-dasharray="6 4"/><path d="${path(ext)}" fill="none" stroke="${col('--exit')}" stroke-width="1.5" stroke-dasharray="6 4"/><path d="${path(null,1)}" fill="none" stroke="${col('--prem')}" stroke-width="2" stroke-linejoin="round"/>`;
+const mk=(i,v,up,lab,cl)=>{const x=X(i),y=Y(v),dd=up?1:-1;g+=`<circle cx="${x}" cy="${y}" r="5" fill="${col(cl)}" stroke="${col('--card')}" stroke-width="2"/><text x="${Math.min(W-R-30,Math.max(L+30,x))}" y="${y+(up?22:-14)}" text-anchor="middle" font-size="12" font-weight="700" fill="${col(cl)}">${lab}</text>`};
+mk(d.ei,d.pin,true,`진입 ${d.pin.toFixed(2)}%`,'--entry');mk(d.xi,d.pout,false,`청산 ${d.pout.toFixed(2)}%`,'--exit');
+return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="거래 차트">${g}</svg>`}
+function showSnap(id){const m=$('mdl');m.style.display='block';$('mt').textContent='불러오는 중…';$('msub').textContent='';$('msvg').innerHTML='';$('mnote').style.display='none';
+loadSnap(id).then(d=>{$('mt').textContent=`${d.in} → ${d.out}`;$('msub').textContent=`${d.held_h<48?d.held_h.toFixed(1)+'시간':(d.held_h/24).toFixed(1)+'일'} 보유 · 김프 ${d.pin.toFixed(2)}% → ${d.pout.toFixed(2)}% · 수익률 ${f(d.ret)}`;$('msvg').innerHTML=snapSvg(d);
+const P=d.series,pre=P.slice(0,d.xi+1).map(p=>p[1]),mn=Math.min(...pre.slice(0,d.xi+1)),mx=Math.max(...pre),be=P[d.ei][2],bx=P[d.xi][2],L=[];
+if(be!=null)L.push(`진입: 그때 기준선보다 <b>${(be-d.pin).toFixed(2)}%p</b> 낮은 가격에 샀어요`);
+if(bx!=null)L.push(`청산: 기준선보다 <b>${(d.pout-bx).toFixed(2)}%p</b> 높게 팔았어요`);
+L.push(`이 구간 최저 ${mn.toFixed(2)}% · 최고 ${mx.toFixed(2)}% (5분 간격 기준 약값) → 진입은 최저에서 +${(d.pin-mn).toFixed(2)}%p, 청산은 최고에서 −${(mx-d.pout).toFixed(2)}%p`);
+$('mnote').style.display='';$('mnote').innerHTML=L.join('<br>')}).catch(()=>{$('mt').textContent='아직 준비 중입니다';$('msub').textContent='청산 직후에는 차트를 만드는 데 몇 분 걸릴 수 있어요. 잠시 뒤 다시 눌러 보세요.'})}
+document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('tr[data-id]');if(r){showSnap(r.dataset.id);return}if(e.target.id==='mclose'||e.target.id==='mdl')$('mdl').style.display='none'});
 addEventListener('resize',()=>chart());
 setInterval(()=>{if(document.visibilityState==='visible')location.reload()},120000);
 </script></body></html>
