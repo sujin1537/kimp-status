@@ -83,7 +83,7 @@ pc.style.display='';pc.innerHTML=`<h2>이번 포지션 <small>${q.held<48?Math.r
 +`<div class="row tot"><span>총 수익 <small>(지금 청산 시)</small></span><b class="${c(q.total)}">${f(q.total)}</b></div>`
 +sub(`업비트 롱 ${f(q.up)} · 바이낸스 숏 ${f(q.fut)} (포지션 규모 대비)`)}else pc.style.display='none';
 $('tiles').innerHTML=[['오늘',s.today_ret],[s.month_since?'이번 달 <span class="sd">'+s.month_since+'~</span>':'이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
-(()=>{const n=$('pnote');if(!n)return;const lead='<span style="display:block;margin-bottom:6px">오늘·이번 달은 청산한 거래 기준(수수료·펀딩 포함), 원금 대비는 계좌 전체 기준입니다.</span>';if(s.pr_other!=null&&s.pr_other<-0.05){n.style.display='';n.innerHTML=lead+`<b>원금 대비 ${f(s.principal_ret)}</b> = 매매 ${f(s.pr_trade)} + 송금·환전 비용 등 ${f(s.pr_other)}<br>바이낸스로 보낼 USDT를 업비트에서 살 때 김프(약 1.5%)만큼 비싸게 샀기 때문입니다. 한 번 드는 비용이고, 매매 수익이 쌓이면 메워집니다.`}else{n.style.display='';n.innerHTML=lead}})();
+(()=>{const n=$('pnote');if(!n)return;const lead='<span style="display:block;margin-bottom:6px">오늘·이번 달은 '거래에 쓴 돈' 기준이고, 원금 대비는 계좌 전체(원금) 기준이라 같은 거래도 비율이 더 작게 나옵니다.</span>';if(s.pr_other!=null&&s.pr_other<-0.05){n.style.display='';n.innerHTML=lead+`<b>원금 대비 ${f(s.principal_ret)}</b> = 매매 수익 ${f(s.pr_trade)} + 송금·환전 비용 ${f(s.pr_other)}<br>송금·환전 비용은 바이낸스로 보낼 USDT를 업비트에서 살 때 김프(약 1.5%)만큼 비싸게 산 값으로, 거래를 시작하기 전에 이미 나간 돈입니다. 매매 수익이 쌓이면 메워집니다.`}else{n.style.display='';n.innerHTML=lead}})();
 $('tr').innerHTML=s.trades.map(t=>{const h=t.held==null?'':t.held<48?t.held.toFixed(1)+'<i class="u1">시간</i><i class="u2">h</i>':(t.held/24).toFixed(1)+'<i class="u1">일</i><i class="u2">d</i>';return `<div class="trg trd" data-id="${t.id}"><span class="c1"><span class="tl">${t.in}<i>→</i>${t.out}</span><span class="hd">(${h})</span></span><span>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}</span><b class="${c(t.ret)}">${f(t.ret)}</b><span class="chev">›</span></div>`}).join('')||'<div style="color:var(--mut);font-size:13px;padding:8px 0">아직 청산한 거래가 없습니다</div>';
 $('ntr').textContent=s.n_trades+'회';
 $('mo').innerHTML=s.months.map(m=>`<span class="chip"><span>${m.m.slice(2)}</span><b class="${c(m.ret)}">${f(m.ret)}</b></span>`).join('');
@@ -148,7 +148,7 @@ if(be!=null)L.push(`진입: 그때 기준선보다 <b>${(be-d.pin).toFixed(2)}%p
 if(bx!=null)L.push(`청산: 기준선보다 <b>${(d.pout-bx).toFixed(2)}%p</b> 높게 팔았어요`);
 L.push(`이 구간 최저 ${mn.toFixed(2)}% · 최고 ${mx.toFixed(2)}% (5분 간격 기준 약값) → 진입은 최저에서 +${(d.pin-mn).toFixed(2)}%p, 청산은 최고에서 −${(mx-d.pout).toFixed(2)}%p`);
 $('mnote').style.display='';$('mnote').innerHTML=L.join('<br>')}).catch(()=>{$('mt').textContent='아직 준비 중입니다';$('msub').textContent='청산 직후에는 차트를 만드는 데 몇 분 걸릴 수 있어요. 잠시 뒤 다시 눌러 보세요.'})}
-document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('tr[data-id]');if(r){showSnap(r.dataset.id);return}if(e.target.id==='mclose'||e.target.id==='mdl')$('mdl').style.display='none'});
+document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('.trd[data-id]');if(r){showSnap(r.dataset.id);return}if(e.target.id==='mclose'||e.target.id==='mdl')$('mdl').style.display='none'});
 addEventListener('resize',()=>chart());
 setInterval(()=>{if(document.visibilityState==='visible')location.reload()},120000);
 </script></body></html>
