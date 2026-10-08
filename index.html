@@ -10,6 +10,7 @@ h1{font-size:17px;margin:0;font-weight:650}.upd{color:var(--mut);font-size:12px}
 .card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:18px;margin-bottom:12px}
 .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .big{font-size:44px;line-height:1;font-weight:700;letter-spacing:-1px}.lab{color:var(--mut);font-size:12px;margin-bottom:6px}
+.note{margin-top:12px;padding-top:12px;border-top:1px solid var(--ln);font-size:12.5px;line-height:1.55;color:var(--mut)}.note b{color:var(--tx);font-weight:600}
 .pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--tile);color:var(--tx)}
 .pill.on{background:color-mix(in srgb,var(--entry) 16%,transparent);color:var(--entry)}.pill.off{background:color-mix(in srgb,var(--exit) 16%,transparent);color:var(--exit)}
 .lines{display:flex;gap:18px;margin-top:14px;font-size:13px;color:var(--mut);flex-wrap:wrap}.lines b{color:var(--tx);font-weight:600}
@@ -37,7 +38,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
 
 <section class="card" id="poscard" style="display:none"></section>
 
-<section class="card"><div class="tiles" id="tiles"></div></section>
+<section class="card"><div class="tiles" id="tiles"></div><div class="note" id="pnote" style="display:none"></div></section>
 
 <section class="card"><h2>최근 24시간 김프 <small id="cs24"></small></h2>
  <div id="chart"><svg id="svg" role="img" aria-label="최근 24시간 김프 차트"></svg><div class="tip" id="tip"></div></div>
@@ -71,7 +72,8 @@ pc.style.display='';pc.innerHTML=`<h2>이번 포지션 <small>${q.held<48?Math.r
 +r('거래비용',f(q.cost),c(q.cost))+sub(`펀딩 ${f(q.funding)} · 수수료 ${f(q.fee)} (청산분 포함)`)
 +`<div class="row tot"><span>총 수익 <small>(지금 청산 시)</small></span><b class="${c(q.total)}">${f(q.total)}</b></div>`
 +sub(`업비트 롱 ${f(q.up)} · 바이낸스 숏 ${f(q.fut)} (포지션 규모 대비)`)}else pc.style.display='none';
-$('tiles').innerHTML=[['오늘',s.today_ret],['이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
+$('tiles').innerHTML=[['오늘',s.today_ret],[s.month_since?'이번 달 ('+s.month_since+'~)':'이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
+(()=>{const n=$('pnote');if(!n)return;if(s.pr_other!=null&&s.pr_other<-0.05){n.style.display='';n.innerHTML=`<b>원금 대비 ${f(s.principal_ret)}</b> = 매매 ${f(s.pr_trade)} + 송금·환전 비용 등 ${f(s.pr_other)}<br>바이낸스로 보낼 USDT를 업비트에서 살 때 김프(약 1.5%)만큼 비싸게 샀기 때문입니다. 한 번 드는 비용이고, 매매 수익이 쌓이면 메워집니다.`}else{n.style.display='none'}})();
 $('tr').innerHTML=s.trades.map(t=>`<tr><td>${t.in} → ${t.out}</td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">아직 청산한 거래가 없습니다</td></tr>';
 $('ntr').textContent=s.n_trades+'회';
 $('mo').innerHTML=s.months.map(m=>`<span class="chip"><span>${m.m.slice(2)}</span><b class="${c(m.ret)}">${f(m.ret)}</b></span>`).join('');
