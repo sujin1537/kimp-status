@@ -63,7 +63,7 @@ $('prem').textContent=s.prem==null?'-':s.prem.toFixed(2)+'%';
 const st=$('state');st.textContent=s.state;st.className='pill '+(s.state==='포지션 보유 중'?'on':(s.state==='정지'||s.state==='환율 확인 중'?'off':''));
 $('lines').innerHTML=[['기준선',s.base],['진입',s.entry],['청산',s.exit]].map(([k,v])=>`<span>${k} <b>${v==null?'-':v.toFixed(2)+'%'}</b></span>`).join('');
 $('legs').innerHTML=s.legs?`<div class="tile"><div class="lab">업비트 롱 손익</div><div class="v ${c(s.legs.up)}">${f(s.legs.up)}</div></div><div class="tile"><div class="lab">바이낸스 숏 손익</div><div class="v ${c(s.legs.fut)}">${f(s.legs.fut)}</div></div>`:'';
-$('tiles').innerHTML=[['오늘',s.today_ret],['이번 달',s.month_ret],['누적(거래)',s.n_trades?s.realized_ret:null]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
+$('tiles').innerHTML=[['오늘',s.today_ret],['이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
 $('tr').innerHTML=s.trades.map(t=>`<tr><td>${t.in} → ${t.out}</td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">아직 청산한 거래가 없습니다</td></tr>';
 $('ntr').textContent=s.n_trades+'회';
 $('mo').innerHTML=s.months.map(m=>`<span class="chip"><span>${m.m.slice(2)}</span><b class="${c(m.ret)}">${f(m.ret)}</b></span>`).join('');
