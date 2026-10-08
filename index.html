@@ -11,7 +11,14 @@ h1{font-size:17px;margin:0;font-weight:650}.upd{color:var(--mut);font-size:12px}
 .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .big{font-size:44px;line-height:1;font-weight:700;letter-spacing:-1px}.lab{color:var(--mut);font-size:12px;margin-bottom:6px;white-space:nowrap}.lab .sd{font-size:10.5px;opacity:.85}
 .note{margin-top:12px;padding-top:12px;border-top:1px solid var(--ln);font-size:12.5px;line-height:1.55;color:var(--mut)}.note b{color:var(--tx);font-weight:600}
-.trd{cursor:pointer}.trd td:not(:first-child){padding-left:10px;white-space:nowrap}.trd:active td{background:var(--tile)}.tl{color:var(--prem);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--prem) 45%,transparent);text-underline-offset:3px}.hd{color:var(--mut);font-size:12px;white-space:nowrap}.chev{display:inline-block;margin-left:2px;padding:1px 8px;border-radius:99px;background:color-mix(in srgb,var(--prem) 12%,transparent);color:var(--prem);font-size:11.5px;font-weight:600;white-space:nowrap}
+.trg{display:grid;grid-template-columns:minmax(0,1fr) auto auto 8px;column-gap:6px;align-items:center;font-size:min(12px,2.95vw);white-space:nowrap}
+.trg>span:nth-child(2),.trg>span:nth-child(3),.trg>b{text-align:center}.trg>b{font-weight:600}
+.trh{color:var(--mut);font-size:min(12px,2.95vw);padding:0 10px 6px}.trh>span:nth-child(2){min-width:56px}.trh>span:nth-child(3){min-width:46px}
+.trd{cursor:pointer;background:var(--tile);border-radius:10px;padding:10px;margin-bottom:6px}.trd:active{filter:brightness(.96)}
+.trd>span:nth-child(2){min-width:56px}.trd>b{min-width:46px}
+.u2{display:none}.hd i{font-style:normal}
+@media(max-width:410px){.u1{display:none}.u2{display:inline}.trg{grid-template-columns:minmax(0,1fr) auto auto;column-gap:5px}.chev{display:none}.trd>span:nth-child(2),.trh>span:nth-child(2){min-width:50px}.trd>b,.trh>span:nth-child(3){min-width:42px}.trh{padding:0 8px 6px}.trd{padding:10px 8px}.tl i{margin:0}}
+.tl{color:var(--prem);font-weight:500}.tl i{font-style:normal;margin:0 1px;opacity:.7}.hd{color:var(--mut);margin-left:4px;font-size:.92em}.chev{color:var(--prem);font-size:15px;line-height:1;text-align:right}
 .pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--tile);color:var(--tx)}
 .pill.on{background:color-mix(in srgb,var(--entry) 16%,transparent);color:var(--entry)}.pill.off{background:color-mix(in srgb,var(--exit) 16%,transparent);color:var(--exit)}
 .lines{display:flex;gap:18px;margin-top:14px;font-size:13px;color:var(--mut);flex-wrap:wrap}.lines b{color:var(--tx);font-weight:600}
@@ -53,7 +60,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
 </section>
 
 <section class="card"><h2>최근 거래 <small id="ntr"></small></h2><div class="hint" style="font-size:12px;color:var(--mut);margin:-6px 0 8px">거래를 누르면 진입·청산 시점 차트를 볼 수 있어요</div>
- <table><thead><tr><th>진입 → 청산</th><th>김프</th><th>수익률</th></tr></thead><tbody id="tr"></tbody></table></section>
+ <div class="trg trh"><span>진입 → 청산 (보유)</span><span>김프 %</span><span>수익률</span><span></span></div><div id="tr"></div></section>
 
 <p class="note">개인이 자기 계좌로 운용하는 자동매매 기록을 보여주는 페이지입니다. 금액은 공개하지 않고 비율만 표시합니다.
 투자 권유나 자문이 아니며, 과거 기록은 미래 수익을 보장하지 않습니다. 원금 손실이 날 수 있고, 각자 본인 책임으로 판단하세요.</p>
@@ -77,7 +84,7 @@ pc.style.display='';pc.innerHTML=`<h2>이번 포지션 <small>${q.held<48?Math.r
 +sub(`업비트 롱 ${f(q.up)} · 바이낸스 숏 ${f(q.fut)} (포지션 규모 대비)`)}else pc.style.display='none';
 $('tiles').innerHTML=[['오늘',s.today_ret],[s.month_since?'이번 달 <span class="sd">'+s.month_since+'~</span>':'이번 달',s.month_ret],['원금 대비',s.principal_ret!=null?s.principal_ret:(s.n_trades?s.realized_ret:null)]].map(([k,v])=>`<div class="tile"><div class="lab">${k}</div><div class="v ${c(v)}">${f(v)}</div></div>`).join('');
 (()=>{const n=$('pnote');if(!n)return;const lead='<span style="display:block;margin-bottom:6px">오늘·이번 달은 청산한 거래 기준(수수료·펀딩 포함), 원금 대비는 계좌 전체 기준입니다.</span>';if(s.pr_other!=null&&s.pr_other<-0.05){n.style.display='';n.innerHTML=lead+`<b>원금 대비 ${f(s.principal_ret)}</b> = 매매 ${f(s.pr_trade)} + 송금·환전 비용 등 ${f(s.pr_other)}<br>바이낸스로 보낼 USDT를 업비트에서 살 때 김프(약 1.5%)만큼 비싸게 샀기 때문입니다. 한 번 드는 비용이고, 매매 수익이 쌓이면 메워집니다.`}else{n.style.display='';n.innerHTML=lead}})();
-$('tr').innerHTML=s.trades.map(t=>`<tr class="trd" data-id="${t.id}"><td><span class="tl">${t.in} → ${t.out}</span> <span class="hd">(${t.held==null?'':t.held<48?t.held.toFixed(1)+'시간':(t.held/24).toFixed(1)+'일'})</span> <span class="chev">차트 ›</span></td><td>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}%</td><td class="${c(t.ret)}">${f(t.ret)}</td></tr>`).join('')||'<tr><td colspan=3 style="color:var(--mut)">아직 청산한 거래가 없습니다</td></tr>';
+$('tr').innerHTML=s.trades.map(t=>{const h=t.held==null?'':t.held<48?t.held.toFixed(1)+'<i class="u1">시간</i><i class="u2">h</i>':(t.held/24).toFixed(1)+'<i class="u1">일</i><i class="u2">d</i>';return `<div class="trg trd" data-id="${t.id}"><span class="c1"><span class="tl">${t.in}<i>→</i>${t.out}</span><span class="hd">(${h})</span></span><span>${t.pin.toFixed(2)}→${t.pout.toFixed(2)}</span><b class="${c(t.ret)}">${f(t.ret)}</b><span class="chev">›</span></div>`}).join('')||'<div style="color:var(--mut);font-size:13px;padding:8px 0">아직 청산한 거래가 없습니다</div>';
 $('ntr').textContent=s.n_trades+'회';
 $('mo').innerHTML=s.months.map(m=>`<span class="chip"><span>${m.m.slice(2)}</span><b class="${c(m.ret)}">${f(m.ret)}</b></span>`).join('');
 chart();cal(s)}).catch(()=>{$('upd').textContent='불러오지 못했습니다'});
