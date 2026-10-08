@@ -58,7 +58,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
 </main><script>
 const $=id=>document.getElementById(id),f=(x,d=2)=>x==null?'-':(x>=0?'+':'')+x.toFixed(d)+'%',c=x=>x==null?'':x>=0?'pos':'neg';
 let S=null;
-fetch('status.json?_='+Date.now()).then(r=>r.json()).then(s=>{S=s;
+const rp=location.hostname.split('.')[0]+'/'+location.pathname.split('/')[1];
+const getS=()=>fetch('https://api.github.com/repos/'+rp+'/contents/status.json',{headers:{Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).catch(()=>fetch('status.json?_='+Date.now(),{cache:'no-store'}).then(r=>r.json()));
+getS().then(s=>{S=s;
 $('mode').textContent=s.mode;$('upd').textContent=s.updated.slice(5)+' 갱신';
 $('prem').textContent=s.prem==null?'-':s.prem.toFixed(2)+'%';
 const st=$('state');st.textContent=s.state;st.className='pill '+(s.state==='포지션 보유 중'?'on':(s.state==='정지'||s.state==='환율 확인 중'?'off':''));
@@ -114,4 +116,5 @@ const tw=tip.offsetWidth,x=(X(i)/W)*r.width;tip.style.left=Math.max(0,Math.min(r
 hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',()=>{xh.style.display='none';tip.style.display='none'});
 const lastP=P[last][1];$('cs24').textContent=`최저 ${Math.min(...P.map(p=>p[1])).toFixed(2)}% · 최고 ${Math.max(...P.map(p=>p[1])).toFixed(2)}%`}
 addEventListener('resize',()=>chart());
+setInterval(()=>{if(document.visibilityState==='visible')location.reload()},120000);
 </script></body></html>
