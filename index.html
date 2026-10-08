@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
  <div class="leg"><span><i style="border-color:var(--prem)"></i>김프</span><span><i style="border-color:var(--base);border-top-style:dotted"></i>기준선</span><span><i style="border-color:var(--entry);border-top-style:dashed"></i>진입선</span><span><i style="border-color:var(--exit);border-top-style:dashed"></i>청산선</span><span id="mylg"></span></div>
 </section>
 
-<section class="card"><h2>일별 마감 수익률</h2>
+<section class="card"><h2>일별 거래 수익률</h2>
  <div class="cal-h"><button id="pm" aria-label="이전 달">‹</button><b id="ml" style="font-size:14px"></b><button id="nm" aria-label="다음 달">›</button></div>
  <div class="cal-g" id="cg"></div><div class="cal-s" id="cs"></div>
  <div class="chips" id="mo"></div>
@@ -92,10 +92,10 @@ function cal(s){const D={};s.days.forEach(x=>D[x.d]=x);let[y,m]=s.today.split('-
 const render=()=>{const first=new Date(y,m-1,1),dim=new Date(y,m,0).getDate(),pad=first.getDay();let h=['일','월','화','수','목','금','토'].map(w=>`<div class="w">${w}</div>`).join(''),sum=1,cnt=0;
 for(let i=0;i<pad;i++)h+='<div></div>';
 for(let d=1;d<=dim;d++){const key=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,x=D[key],isT=key===s.today;let bg='';
-if(x){const a=Math.min(Math.abs(x.ret)/0.5,1)*.35+.08;bg=`background:${x.ret>=0?'rgba(217,45,32,'+a+')':'rgba(29,111,232,'+a+')'}`;if(!isT){sum*=1+x.ret/100;cnt++}}
-h+=`<div class="cell ${isT?'t':''}" style="${bg}"><div>${d}</div><div class="r">${x?(isT?'진행':f(x.ret,2)):''}</div></div>`}
+if(x){const a=Math.min(Math.abs(x.ret)/0.8,1)*.35+.08;bg=`background:${x.ret>=0?'rgba(217,45,32,'+a+')':'rgba(29,111,232,'+a+')'}`;sum*=1+x.ret/100;cnt+=x.n}
+h+=`<div class="cell ${isT?'t':''}" style="${bg}"><div>${d}</div><div class="r">${x?f(x.ret,2):''}</div></div>`}
 $('cg').innerHTML=h;$('ml').textContent=`${y}년 ${m}월`;
-$('cs').textContent=cnt?`마감 ${cnt}일 · 일별 복리 합계 ${f((sum-1)*100,2)} (오늘은 진행 중이라 제외)`:'하루가 끝나면(한국시간 24시) 채워집니다.'};
+$('cs').textContent=cnt?`이 달 청산 ${cnt}회 · 거래 수익률 합계 ${f((sum-1)*100,2)} (청산한 날에 표시, 송금·환전 비용 제외)`:'청산한 거래가 있는 날에 수익률이 표시됩니다.'};
 $('pm').onclick=()=>{m--;if(m<1){m=12;y--}render()};$('nm').onclick=()=>{if(y==start[0]&&m==start[1])return;m++;if(m>12){m=1;y++}render()};render()}
 function chart(){const s=S;if(!s||!s.series||s.series.length<2){return}
 const sv=$('svg'),W=Math.min($('chart').clientWidth||600,640),H=Math.round(W*.58),L=38,R=44,T=26,B=22;sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
