@@ -84,7 +84,7 @@ $('cg').innerHTML=h;$('ml').textContent=`${y}년 ${m}월`;
 $('cs').textContent=cnt?`마감 ${cnt}일 · 일별 복리 합계 ${f((sum-1)*100,2)} (오늘은 진행 중이라 제외)`:'하루가 끝나면(한국시간 24시) 채워집니다.'};
 $('pm').onclick=()=>{m--;if(m<1){m=12;y--}render()};$('nm').onclick=()=>{if(y==start[0]&&m==start[1])return;m++;if(m>12){m=1;y++}render()};render()}
 function chart(){const s=S;if(!s||!s.series||s.series.length<2){return}
-const sv=$('svg'),W=Math.min($('chart').clientWidth||600,640),H=Math.round(W*.58),L=38,R=44,T=10,B=22;sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const sv=$('svg'),W=Math.min($('chart').clientWidth||600,640),H=Math.round(W*.58),L=38,R=44,T=26,B=22;sv.setAttribute('viewBox',`0 0 ${W} ${H}`);
 const P=s.series,gap=(s.base!=null&&s.entry!=null)?s.base-s.entry:null,band=(s.base!=null&&s.exit!=null)?s.exit-s.base:null;
 const ent=P.map(p=>p[2]==null||gap==null?null:p[2]-gap),ext=P.map(p=>p[2]==null?null:p[2]+(p[3]!=null?p[3]:(band==null?0:band)));
 const vals=P.flatMap((p,i)=>[p[1],p[2],ent[i],ext[i]]).concat(s.my_entry==null?[]:[s.my_entry]).filter(v=>v!=null);
@@ -99,6 +99,10 @@ g+=`<path d="${path(ent,-1)}" fill="none" stroke="${col('--entry')}" stroke-widt
 g+=`<path d="${path(ext,-1)}" fill="none" stroke="${col('--exit')}" stroke-width="1.5" stroke-dasharray="6 4"/>`;
 if(s.my_entry!=null){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(s.my_entry)}" y2="${Y(s.my_entry)}" stroke="${col('--entry')}" stroke-width="1.5"/><text x="${W-R+4}" y="${Y(s.my_entry)+4}" font-size="11" font-weight="600" fill="${col('--entry')}">내 진입</text>`;$('mylg').innerHTML=`<span><i style="border-color:var(--entry)"></i>내 진입 ${s.my_entry.toFixed(2)}%</span>`}
 g+=`<path d="${path(null,1)}" fill="none" stroke="${col('--prem')}" stroke-width="2" stroke-linejoin="round"/>`;
+const idxOf=t=>{if(!t||t<P[0][0])return -1;let k=-1;for(let i=0;i<P.length;i++){if(P[i][0]<=t)k=i;else break}return k};
+const mk=(t,v,up,lab,cl)=>{const i=idxOf(t);if(i<0||v==null)return;const x=X(i),y=Y(v),d=up?-1:1;g+=`<path d="M${x} ${y} l-5 ${d*-9} h10 z" fill="${col(cl)}" stroke="${col('--card')}" stroke-width="1.5"/><text x="${x}" y="${y+d*-20}" text-anchor="middle" font-size="11" font-weight="600" fill="${col(cl)}">${lab}</text>`};
+(s.trades||[]).forEach(t=>{mk(t.in,t.pin,true,'진입','--entry');mk(t.out,t.pout,false,'청산','--exit')});
+if(s.my_entry_t)mk(s.my_entry_t,s.my_entry,true,'진입','--entry');
 const last=P.length-1;g+=`<circle cx="${X(last)}" cy="${Y(P[last][1])}" r="4" fill="${col('--prem')}" stroke="${col('--card')}" stroke-width="2"/>`;
 g+=`<g id="xh" style="display:none"><line id="xl" y1="${T}" y2="${H-B}" stroke="${col('--mut')}" stroke-width="1"/><circle id="xc" r="4.5" fill="${col('--prem')}" stroke="${col('--card')}" stroke-width="2"/></g><rect id="hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/>`;
 sv.innerHTML=g;
