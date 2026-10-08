@@ -59,7 +59,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 0;bor
 const $=id=>document.getElementById(id),f=(x,d=2)=>x==null?'-':(x>=0?'+':'')+x.toFixed(d)+'%',c=x=>x==null?'':x>=0?'pos':'neg';
 let S=null;
 const rp=location.hostname.split('.')[0]+'/'+location.pathname.split('/')[1];
-const getS=()=>fetch('https://api.github.com/repos/'+rp+'/contents/status.json',{headers:{Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).catch(()=>fetch('status.json?_='+Date.now(),{cache:'no-store'}).then(r=>r.json()));
+const getS=()=>fetch('https://api.github.com/repos/'+rp+'/contents/status.json?ref=data',{headers:{Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).catch(()=>fetch('https://raw.githubusercontent.com/'+rp+'/data/status.json?_='+Date.now(),{cache:'no-store'}).then(r=>r.json()));
 getS().then(s=>{S=s;
 $('mode').textContent=s.mode;$('upd').textContent=s.updated.slice(5)+' 갱신';
 $('prem').textContent=s.prem==null?'-':s.prem.toFixed(2)+'%';
