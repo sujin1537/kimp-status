@@ -116,7 +116,7 @@ g+=`<path d="${path(null,1)}" fill="none" stroke="${col('--prem')}" stroke-width
 const idxOf=t=>{if(!t||t<P[0][0])return -1;let k=-1;for(let i=0;i<P.length;i++){if(P[i][0]<=t)k=i;else break}return k};
 const mk=(t,v,up,lab,cl)=>{const i=idxOf(t);if(i<0||v==null)return;const x=X(i),y=Y(v),d=up?-1:1;g+=`<path d="M${x} ${y} l-5 ${d*-9} h10 z" fill="${col(cl)}" stroke="${col('--card')}" stroke-width="1.5"/><text x="${x}" y="${y+d*-20}" text-anchor="middle" font-size="11" font-weight="600" fill="${col(cl)}">${lab}</text>`};
 (s.trades||[]).forEach(t=>{mk(t.in,t.pin,true,'진입','--entry');mk(t.out,t.pout,false,'청산','--exit')});
-if(s.my_entry_t)mk(s.my_entry_t,s.my_entry,true,'진입','--entry');
+if(s.my_entry_t)mk(s.my_entry_t,s.my_entry,true,'','--entry');
 const last=P.length-1;g+=`<circle cx="${X(last)}" cy="${Y(P[last][1])}" r="4" fill="${col('--prem')}" stroke="${col('--card')}" stroke-width="2"/>`;
 g+=`<g id="xh" style="display:none"><line id="xl" y1="${T}" y2="${H-B}" stroke="${col('--mut')}" stroke-width="1"/><circle id="xc" r="4.5" fill="${col('--prem')}" stroke="${col('--card')}" stroke-width="2"/></g><rect id="hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/>`;
 sv.innerHTML=g;
